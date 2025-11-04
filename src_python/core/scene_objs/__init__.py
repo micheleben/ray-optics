@@ -15,5 +15,6 @@ limitations under the License.
 """
 
 from .base_scene_obj import BaseSceneObj, ConstructReturn, SimulationReturn
+from .line_obj_mixin import LineObjMixin
 
-__all__ = ['BaseSceneObj', 'ConstructReturn', 'SimulationReturn']
+__all__ = ['BaseSceneObj', 'ConstructReturn', 'SimulationReturn', 'LineObjMixin']
