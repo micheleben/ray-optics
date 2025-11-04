@@ -14,8 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .base_scene_obj import BaseSceneObj, ConstructReturn, SimulationReturn
-from .line_obj_mixin import LineObjMixin
-from .circle_obj_mixin import CircleObjMixin
+from .geometry import geometry, Point, Line, Circle, Geometry
+from . import constants
 
-__all__ = ['BaseSceneObj', 'ConstructReturn', 'SimulationReturn', 'LineObjMixin', 'CircleObjMixin']
+__all__ = ['geometry', 'Point', 'Line', 'Circle', 'Geometry', 'constants']
