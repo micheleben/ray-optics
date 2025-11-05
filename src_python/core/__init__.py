@@ -16,5 +16,10 @@ limitations under the License.
 
 from .geometry import geometry, Point, Line, Circle, Geometry
 from . import constants
+from .equation import evaluate_latex, evaluate_latex_single_var
 
-__all__ = ['geometry', 'Point', 'Line', 'Circle', 'Geometry', 'constants']
+__all__ = [
+    'geometry', 'Point', 'Line', 'Circle', 'Geometry',
+    'constants',
+    'evaluate_latex', 'evaluate_latex_single_var'
+]

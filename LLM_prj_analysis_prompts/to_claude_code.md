@@ -5,7 +5,15 @@ This file contains a history of prompts passed to the LLM to re-implement the ja
 ## Making a plan for re-implementation:
 
 ### bottom-up re-implementation plan
-looking to the javascript template so far we have done the Layer 0: pure Utilities. 
+#### Layer 0  the choice of Shapely for geometry utilities
+*geometry.js*
+
+>Hi, I would like to ranslate the code that is written in geometry.js in python leveraging on python shapely library. Could you help proposing a geometry.py file that is a close replica of the javascript one using shapely?
+
+#### Layer 1 : introducing layered structure
+*BaseSceneObj.js*
+
+>looking to the javascript template so far we have done the Layer 0: pure Utilities. 
 Let's examin the javascript project structure (dependency table) to find a template to follow in our re-implementation
 It is as the following:
 
@@ -73,4 +81,18 @@ It is as the following:
     * Drawing/rendering coordination
 
 I would like now to translate the code in BaseSceneObj.js. Could you please write a python equivalent and place it in the subfolder src_python/core/scene_obj ?
+
+
+#### Layer 2: MIXINS & SPECIALIZED BASES
+list of mixins to be translated in layer 2:
+1. *LineObjMixin.js*
+2. *CircleObjMixin.js*
+
+- we need to translate equation.js first as it is a dependency for ParamCurveObjMixin.js mixins
+
+ok, let's now move on and let's approach the tranlation of ParamCurveObjMixin.js. This file has a dependency from evaluateLatex so we need to solve this first. I think we will need to start tackling the translation of equation.js in the src/core directory. I would suggest to use the python Sympy lib to substitute the use of the javascript evaluatex lib, and build your translation based on Sympy.  The .py file will go into the subdir src_python/core. After the implementation you will need to update the __init__.py file. 
+
+1. *ParamCurveObjMixin.js* 
+   
+> ok, let's now move on and start with the tranlation of ParamCurveObjMixin.js. The .py file will go into the subdir src_python/core/scene_objs. After the implementation you will need to update the __init__.py file. 
 
