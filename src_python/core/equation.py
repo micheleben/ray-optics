@@ -30,7 +30,9 @@ Key features:
 
 import sympy as sp
 import math
+import re
 from typing import Callable, Dict, Any
+from functools import lru_cache
 from sympy.parsing.sympy_parser import (
     parse_expr,
     standard_transformations,
@@ -91,6 +93,9 @@ def preprocess_latex(latex: str) -> str:
 
     Returns:
         Preprocessed string suitable for sympify
+
+    Raises:
+        ValueError: If LaTeX contains malformed constructs
     """
     # Replace operators and functions with SymPy-compatible equivalents
     replacements = {
@@ -162,8 +167,39 @@ def preprocess_latex(latex: str) -> str:
     for old, new in replacements.items():
         result = result.replace(old, new)
 
+    # Handle power notation: \sin^2(t) -> (sin(t))**2
+    # This needs to be done before other replacements
+    # Match pattern like \sin^{2}(t) or \cos^2(x)
+    power_pattern = r'\\?(sin|cos|tan|sec|csc|cot|sinh|cosh|tanh|sech|csch|coth)\^(\{)?(\d+)(\})?'
+    result = re.sub(power_pattern, lambda m: f"({m.group(1)})**{m.group(3)}", result)
+
+    # Handle square roots: \sqrt{x} -> sqrt(x)
+    while r'\sqrt' in result:
+        # Match \sqrt{...} with proper brace counting
+        match = re.search(r'\\sqrt\{', result)
+        if not match:
+            break
+
+        start_idx = match.start()
+        brace_start = match.end() - 1  # Position of '{'
+
+        # Count braces to find matching closing brace
+        brace_count = 1
+        i = brace_start + 1
+        while i < len(result) and brace_count > 0:
+            if result[i] == '{':
+                brace_count += 1
+            elif result[i] == '}':
+                brace_count -= 1
+            i += 1
+
+        if brace_count != 0:
+            raise ValueError(f"Malformed \\sqrt: unmatched braces in '{latex}'")
+
+        content = result[brace_start + 1:i - 1]
+        result = result[:start_idx] + f'sqrt({content})' + result[i:]
+
     # Handle fractions: \frac{a}{b} -> (a)/(b)
-    # Simple implementation - look for \frac{...}{...}
     while r'\frac' in result:
         frac_idx = result.find(r'\frac')
         if frac_idx == -1:
@@ -172,7 +208,7 @@ def preprocess_latex(latex: str) -> str:
         # Find the numerator {...}
         start_num = result.find('{', frac_idx)
         if start_num == -1:
-            break
+            raise ValueError(f"Malformed \\frac: missing opening brace for numerator in '{latex}'")
 
         brace_count = 1
         end_num = start_num + 1
@@ -183,12 +219,15 @@ def preprocess_latex(latex: str) -> str:
                 brace_count -= 1
             end_num += 1
 
+        if brace_count != 0:
+            raise ValueError(f"Malformed \\frac: unmatched braces in numerator in '{latex}'")
+
         numerator = result[start_num + 1:end_num - 1]
 
         # Find the denominator {...}
         start_den = end_num
         if start_den >= len(result) or result[start_den] != '{':
-            break
+            raise ValueError(f"Malformed \\frac: missing denominator in '{latex}'")
 
         brace_count = 1
         end_den = start_den + 1
@@ -198,6 +237,9 @@ def preprocess_latex(latex: str) -> str:
             elif result[end_den] == '}':
                 brace_count -= 1
             end_den += 1
+
+        if brace_count != 0:
+            raise ValueError(f"Malformed \\frac: unmatched braces in denominator in '{latex}'")
 
         denominator = result[start_den + 1:end_den - 1]
 
@@ -216,7 +258,18 @@ def preprocess_latex(latex: str) -> str:
     return result
 
 
-def evaluate_latex(latex: str, additional_context: Dict[str, Any] = None) -> Callable:
+@lru_cache(maxsize=128)
+def _evaluate_latex_cached(latex: str, context_tuple: tuple = None) -> Callable:
+    """
+    Internal cached version of evaluate_latex.
+    Uses tuple for context to make it hashable for caching.
+    """
+    # Convert context tuple back to dict
+    additional_context = dict(context_tuple) if context_tuple else None
+    return _evaluate_latex_impl(latex, additional_context)
+
+
+def _evaluate_latex_impl(latex: str, additional_context: Dict[str, Any] = None) -> Callable:
     """
     Evaluate a LaTeX mathematical expression and return a callable function.
 
@@ -311,6 +364,30 @@ def evaluate_latex(latex: str, additional_context: Dict[str, Any] = None) -> Cal
     except Exception as e:
         # If parsing fails, try to provide helpful error message
         raise ValueError(f"Failed to parse expression '{latex}' (preprocessed: '{preprocessed}'): {str(e)}")
+
+
+def evaluate_latex(latex: str, additional_context: Dict[str, Any] = None) -> Callable:
+    """
+    Evaluate a LaTeX mathematical expression and return a callable function.
+
+    This is the public interface that wraps the cached implementation.
+    Results are cached for performance - repeated calls with the same LaTeX expression
+    will return the cached compiled function.
+
+    Args:
+        latex: LaTeX expression string (e.g., "t^2 + 2t + 1")
+        additional_context: Additional variables/functions to make available in the expression
+
+    Returns:
+        A callable function that takes keyword arguments for variables
+
+    Example:
+        >>> fn = evaluate_latex("t^2 + 2t + 1")
+        >>> result = fn(t=3)  # Returns 16
+    """
+    # Convert dict to tuple for caching (dicts aren't hashable)
+    context_tuple = tuple(sorted(additional_context.items())) if additional_context else None
+    return _evaluate_latex_cached(latex, context_tuple)
 
 
 # Convenience function for single-variable expressions
@@ -411,6 +488,62 @@ if __name__ == "__main__":
     result = fn8(2.0)
     expected = 2**3 - 2*2 + 1
     print(f"  t=2.0: fn(2.0) = {result}, expected = {expected}, match = {abs(result - expected) < 1e-10}")
+
+    # Test 9: Square root
+    print("\nTest 9: Square root")
+    latex9 = r"\sqrt{t}"
+    fn9 = evaluate_latex(latex9)
+    for t in [1, 4, 9]:
+        result = fn9(t=t)
+        expected = math.sqrt(t)
+        print(f"  t={t}: fn(t) = {result:.6f}, expected = {expected:.6f}, match = {abs(result - expected) < 1e-10}")
+
+    # Test 10: Power notation (sin^2)
+    print("\nTest 10: Power notation (sin^2)")
+    latex10 = r"\sin^2(t) + \cos^2(t)"
+    fn10 = evaluate_latex(latex10)
+    for t in [0, math.pi/4, math.pi/2]:
+        result = fn10(t=t)
+        expected = math.sin(t)**2 + math.cos(t)**2  # Should be 1
+        print(f"  t={t:.4f}: fn(t) = {result:.6f}, expected = {expected:.6f}, match = {abs(result - expected) < 1e-10}")
+
+    # Test 11: Fraction
+    print("\nTest 11: Fraction")
+    latex11 = r"\frac{1}{t}"
+    fn11 = evaluate_latex(latex11)
+    for t in [1, 2, 4]:
+        result = fn11(t=t)
+        expected = 1.0 / t
+        print(f"  t={t}: fn(t) = {result:.6f}, expected = {expected:.6f}, match = {abs(result - expected) < 1e-10}")
+
+    # Test 12: Caching performance
+    print("\nTest 12: Caching performance")
+    import time
+    latex12 = "t^3 + 5*t^2 - 3*t + 7"
+
+    # First call (not cached)
+    start = time.time()
+    fn12a = evaluate_latex(latex12)
+    first_time = time.time() - start
+
+    # Second call (cached)
+    start = time.time()
+    fn12b = evaluate_latex(latex12)
+    second_time = time.time() - start
+
+    print(f"  First call:  {first_time*1000:.3f} ms")
+    print(f"  Second call: {second_time*1000:.3f} ms (cached)")
+    print(f"  Speedup: {first_time/second_time:.1f}x")
+    print(f"  Same function object: {fn12a is fn12b}")
+
+    # Test 13: Error handling - malformed fraction
+    print("\nTest 13: Error handling - malformed fraction")
+    try:
+        latex13 = r"\frac{1}"  # Missing denominator
+        fn13 = evaluate_latex(latex13)
+        print("  ERROR: Should have raised ValueError!")
+    except ValueError as e:
+        print(f"  Correctly raised ValueError: {str(e)[:60]}...")
 
     print("\n" + "=" * 50)
     print("All tests completed!")

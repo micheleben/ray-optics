@@ -92,6 +92,14 @@ list of mixins to be translated in layer 2:
 
 ok, let's now move on and let's approach the tranlation of ParamCurveObjMixin.js. This file has a dependency from evaluateLatex so we need to solve this first. I think we will need to start tackling the translation of equation.js in the src/core directory. I would suggest to use the python Sympy lib to substitute the use of the javascript evaluatex lib, and build your translation based on Sympy.  The .py file will go into the subdir src_python/core. After the implementation you will need to update the __init__.py file. 
 
+>Potential improvements:
+
+1. Error handling for malformed LaTeX - What happens if someone writes \frac{1}{ (incomplete fraction)? Your code might break on edge cases.
+
+2. Performance - lambdify is called every time you create a function. If you're evaluating the same expression many times (like tracing rays along a curve), you might want to cache the compiled functions.
+
+3. More LaTeX operators - Does our raytracer need things like square roots (\sqrt{x}) or powers of functions (\sin^2(t))?
+
 1. *ParamCurveObjMixin.js* 
    
 > ok, let's now move on and start with the tranlation of ParamCurveObjMixin.js. The .py file will go into the subdir src_python/core/scene_objs. After the implementation you will need to update the __init__.py file. 
