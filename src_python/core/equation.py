@@ -168,10 +168,54 @@ def preprocess_latex(latex: str) -> str:
         result = result.replace(old, new)
 
     # Handle power notation: \sin^2(t) -> (sin(t))**2
-    # This needs to be done before other replacements
-    # Match pattern like \sin^{2}(t) or \cos^2(x)
-    power_pattern = r'\\?(sin|cos|tan|sec|csc|cot|sinh|cosh|tanh|sech|csch|coth)\^(\{)?(\d+)(\})?'
-    result = re.sub(power_pattern, lambda m: f"({m.group(1)})**{m.group(3)}", result)
+    # This needs to be done AFTER replacing \sin with sin, but BEFORE replacing ^ with **
+    # We need to match the function with its complete argument list
+
+    # Function to handle power notation with proper parenthesis matching
+    def replace_power_notation(text):
+        """Replace sin^2(x) with (sin(x))**2, handling nested parentheses."""
+        funcs = r'(sin|cos|tan|sec|csc|cot|sinh|cosh|tanh|sech|csch|coth|log|ln|exp|sqrt)'
+        pattern = re.compile(rf'{funcs}\s*\^(\{{)?(\d+)(\}})?', re.IGNORECASE)
+
+        match = pattern.search(text)
+        while match:
+            func_name = match.group(1)
+            power = match.group(3)
+            start_idx = match.start()
+            end_idx = match.end()
+
+            # Find the argument list after the function
+            # Look for opening parenthesis
+            i = end_idx
+            while i < len(text) and text[i].isspace():
+                i += 1
+
+            if i < len(text) and text[i] == '(':
+                # Count parentheses to find matching close
+                paren_count = 1
+                j = i + 1
+                while j < len(text) and paren_count > 0:
+                    if text[j] == '(':
+                        paren_count += 1
+                    elif text[j] == ')':
+                        paren_count -= 1
+                    j += 1
+
+                # Extract the argument list including parentheses
+                args = text[i:j]
+                # Replace with (func(args))**power
+                replacement = f'({func_name}{args})**{power}'
+                text = text[:start_idx] + replacement + text[j:]
+            else:
+                # No arguments found, just move forward (shouldn't happen in valid input)
+                break
+
+            # Search for next match
+            match = pattern.search(text, start_idx + len(replacement))
+
+        return text
+
+    result = replace_power_notation(result)
 
     # Handle square roots: \sqrt{x} -> sqrt(x)
     while r'\sqrt' in result:
@@ -533,7 +577,10 @@ if __name__ == "__main__":
 
     print(f"  First call:  {first_time*1000:.3f} ms")
     print(f"  Second call: {second_time*1000:.3f} ms (cached)")
-    print(f"  Speedup: {first_time/second_time:.1f}x")
+    if second_time > 0:
+        print(f"  Speedup: {first_time/second_time:.1f}x")
+    else:
+        print(f"  Speedup: >1000x (too fast to measure)")
     print(f"  Same function object: {fn12a is fn12b}")
 
     # Test 13: Error handling - malformed fraction
