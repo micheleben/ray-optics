@@ -1,4 +1,4 @@
-# History of promps passed to LLM for re-implementing a JS optical simulator in Python
+# History of prompts passed to LLM for re-implementing a JS optical simulator in Python
 
 This file contains a history of prompts passed to the LLM to re-implement the javascript optical simulator in python.
 
@@ -8,7 +8,7 @@ This file contains a history of prompts passed to the LLM to re-implement the ja
 #### Layer 0  the choice of Shapely for geometry utilities
 *geometry.js*
 
->Hi, I would like to ranslate the code that is written in geometry.js in python leveraging on python shapely library. Could you help proposing a geometry.py file that is a close replica of the javascript one using shapely?
+>Hi, I would like to translate the code that is written in geometry.js in python leveraging on python shapely library. Could you help proposing a geometry.py file that is a close replica of the javascript one using shapely?
 
 #### Layer 1 : introducing layered structure
 *BaseSceneObj.js*
@@ -103,4 +103,7 @@ ok, let's now move on and let's approach the tranlation of ParamCurveObjMixin.js
 1. *ParamCurveObjMixin.js* 
    
 > ok, let's now move on and start with the tranlation of ParamCurveObjMixin.js. The .py file will go into the subdir src_python/core/scene_objs. After the implementation you will need to update the __init__.py file. 
+
+# Getting back to it after a break:
+> Hi, I would like to continue the re-implementation of the optical simulator in python. We had stopped at the translation of the ParamCurveObjMixin.js file. Could you please help me to continue from there?
 

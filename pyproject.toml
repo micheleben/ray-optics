@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ray-optics-python"
+version = "0.1.0"
+description = "Python implementation of the Ray Optics Simulation"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "The Ray Optics Simulation authors and contributors"}
+]
+
+dependencies = [
+    "shapely>=2.0.0",
+    "sympy>=1.12",
+    "numpy>=1.20.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=22.0.0",
+    "flake8>=4.0.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src_python"}
+
+[tool.setuptools.packages.find]
+where = ["src_python"]

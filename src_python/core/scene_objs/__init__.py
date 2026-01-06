@@ -18,5 +18,6 @@ from .base_scene_obj import BaseSceneObj, ConstructReturn, SimulationReturn
 from .line_obj_mixin import LineObjMixin
 from .circle_obj_mixin import CircleObjMixin
 from .param_curve_obj_mixin import ParamCurveObjMixin
+from .base_filter import BaseFilter
 
-__all__ = ['BaseSceneObj', 'ConstructReturn', 'SimulationReturn', 'LineObjMixin', 'CircleObjMixin', 'ParamCurveObjMixin']
+__all__ = ['BaseSceneObj', 'ConstructReturn', 'SimulationReturn', 'LineObjMixin', 'CircleObjMixin', 'ParamCurveObjMixin', 'BaseFilter']

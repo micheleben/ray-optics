@@ -29,7 +29,9 @@ MIN_RAY_SEGMENT_LENGTH = 1e-6
 MIN_RAY_SEGMENT_LENGTH_SQUARED = MIN_RAY_SEGMENT_LENGTH * MIN_RAY_SEGMENT_LENGTH
 
 # Wavelengths (in nanometers)
-GREEN_WAVELENGTH = 532  # Default green wavelength for lasers
+UV_WAVELENGTH = 380          # Ultraviolet wavelength boundary
+INFRARED_WAVELENGTH = 700    # Infrared wavelength boundary
+GREEN_WAVELENGTH = 532       # Default green wavelength for lasers
 RED_WAVELENGTH = 650
 BLUE_WAVELENGTH = 450
 
