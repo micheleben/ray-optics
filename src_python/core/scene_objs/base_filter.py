@@ -34,6 +34,22 @@ class BaseFilter(BaseSceneObj):
                 bandwidth of the filter.
         wavelength: The target wavelength of the filter. The unit is nm.
         bandwidth: The bandwidth of the filter. The unit is nm.
+
+    Observations:
+    obj_bar is a placeholder for a UI widget - specifically the "object bar" or property panel in the simulator's user interface.
+    In the original JavaScript application, when a user selects an optical element (like a mirror or lens), 
+    the obj_bar appears as a sidebar/panel with controls to adjust that object's properties. 
+    The populate_obj_bar() method is called to dynamically create UI controls for the object's properties. 
+    For example, in BaseFilter: obj_bar.create_boolean() - Creates a checkbox for enabling/disabling the filter 
+    obj_bar.create_number() - Creates a number input/slider for wavelength and bandwidth values 
+    The methods like create_boolean(), create_number(), etc. are part of the UI framework and generate interactive controls that: 
+    - Display the current property value 
+    - Allow the user to modify it 
+    - Call the provided callback function when the value changes 
+    
+    Since we're translating to Python for the simulation engine, these populate_obj_bar() methods are currently just stubs that define the interface. 
+    If we want to create a Python GUI (using something like PyQt, Tkinter, or a web interface), we'd implement an obj_bar class that actually creates those UI controls. 
+    For now, they serve as documentation of what properties should be exposed to users and how they should be configured.        
     """
 
     def populate_obj_bar(self, obj_bar):

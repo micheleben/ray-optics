@@ -39,6 +39,20 @@ class ParamCurveObjMixin:
     - path: Optional cached list of points on the curve
     - error: Optional error message string
     - intersect_tol: Tolerance for intersection detection (optional, defaults to appropriate value)
+    
+    features:
+
+    - LaTeX equation support - We built a full LaTeX parser with evaluate_latex() that handles fractions, trig functions, powers, etc. 
+    - Piecewise curves - Supporting multiple pieces with different equations is powerful
+    - Inside/outside testing - The crossing number algorithm with boundary detection is well-implemented
+    - Ray intersections - The normal vector calculation with smoothing at segment joints is sophisticated
+    
+    design choices:
+
+    - Caching path points (only regenerating when needed)
+    - Error handling throughout with informative messages
+    - The sech custom function for GRIN lens support
+    
     """
 
     def __init__(self, scene, json_obj: Optional[Dict[str, Any]] = None):
