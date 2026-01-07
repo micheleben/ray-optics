@@ -748,13 +748,30 @@ if __name__ == "__main__":
             print(f"  Step {i+1}: ({p2.x:.4f}, {p2.y:.4f})")
             p1, p2 = p2, p_next
 
-        # Test ray stepping with angled ray to see bending
+        # Test ray stepping with angled ray 
         print("\nRay trajectory test (angled ray):")
         ray = MockRay()
         ray.bodyMergingObj = grin.init_ref_index(ray)
 
         p1 = geometry.point(0, 0)
         p2 = geometry.point(0.1, 0.1)  # Diagonal direction
+
+        print(f"  Starting at ({p1.x:.2f}, {p1.y:.2f}), direction: ({p2.x:.2f}, {p2.y:.2f})")
+        for i in range(10):  # More steps to see curvature
+            p_next = grin.step(p1, p2, ray)
+            print(f"  Step {i+1}: ({p2.x:.4f}, {p2.y:.4f})")
+            p1, p2 = p2, p_next
+
+        # Test ray stepping with angled and offset ray to see bending
+        # we expect The x-coordinate is increasing (from 0.1000 to 0.1087), 
+        # so the ray is bending to the right (positive x direction).
+        print("\nRay trajectory test (angled ray):")
+        ray = MockRay()
+        ray.bodyMergingObj = grin.init_ref_index(ray)
+
+        p1 = geometry.point(0.1, 0) # offset x 
+        p2 = geometry.point(0.1, 0.1)  # y parallel direction
+
         print(f"  Starting at ({p1.x:.2f}, {p1.y:.2f}), direction: ({p2.x:.2f}, {p2.y:.2f})")
         for i in range(10):  # More steps to see curvature
             p_next = grin.step(p1, p2, ray)
