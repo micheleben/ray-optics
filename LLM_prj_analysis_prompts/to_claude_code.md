@@ -105,5 +105,18 @@ ok, let's now move on and let's approach the tranlation of ParamCurveObjMixin.js
 > ok, let's now move on and start with the tranlation of ParamCurveObjMixin.js. The .py file will go into the subdir src_python/core/scene_objs. After the implementation you will need to update the __init__.py file. 
 
 # Getting back to it after a break:
-> Hi, I would like to continue the re-implementation of the optical simulator in python. We had stopped at the translation of the ParamCurveObjMixin.js file. Could you please help me to continue from there?
+> 
+Hi, I would like to continue the re-implementation of this Javascript optical simulator in python. We had stopped after the translation of the BaseGlass.js file. 
+we have so far translated the following files:
+- geometry.js  -> src_python/core/geometry.py
+- BaseSceneObj.js -> src_python/core/scene_objs/BaseSceneObj.py
+- LineObjMixin.js -> src_python/core/scene_objs/LineObjMixin.py
+- CircleObjMixin.js -> src_python/core/scene_objs/CircleObjMixin.py
+- ParamCurveObjMixin.js -> src_python/core/scene_objs/ParamCurveObjMixin.py
+- equation.js -> src_python/core/equation.py
+- BaseFilter.js -> src_python/core/scene_objs/BaseFilter.py 
+- BaseGlass.js -> src_python/core/scene_objs/BaseGlass.py  
+- at every step we updated src_python/core/scene_objs/__init__.py accordingly
+- 
+Could you please help me to continue from there? Which should be the next logical file to translate? you can see the previous files we have produced so far in src_python/ which are mirroring the javascript files in src. You have an history of the prompt that were passed to a previous LLM agent in the folder LLM_prj_analysis_prompt/to_claude_code.md.
 
