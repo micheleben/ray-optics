@@ -88,3 +88,85 @@ class Ray:
         return (f"Ray(p1={self.p1}, p2={self.p2}, "
                 f"brightness=({self.brightness_s:.3f}, {self.brightness_p:.3f}), "
                 f"wavelength={self.wavelength})")
+
+
+# Example usage and testing
+if __name__ == "__main__":
+    import math
+
+    print("Testing Ray class...\n")
+
+    # Test 1: Create a basic white light ray
+    print("Test 1: Basic ray creation")
+    ray1 = Ray(
+        p1={'x': 0, 'y': 0},
+        p2={'x': 100, 'y': 0},
+        brightness_s=0.5,
+        brightness_p=0.5
+    )
+    print(f"  {ray1}")
+    print(f"  Total brightness: {ray1.total_brightness}")
+    print(f"  Is new: {ray1.is_new}")
+    print(f"  Is gap: {ray1.gap}")
+
+    # Test 2: Create a colored ray (red light at 650nm)
+    print("\nTest 2: Colored ray (red light)")
+    ray2 = Ray(
+        p1={'x': 0, 'y': 100},
+        p2={'x': 100, 'y': 150},
+        brightness_s=1.0,
+        brightness_p=0.0,
+        wavelength=650
+    )
+    print(f"  {ray2}")
+    print(f"  Wavelength: {ray2.wavelength} nm")
+    print(f"  S-polarization only: brightness_s={ray2.brightness_s}, brightness_p={ray2.brightness_p}")
+
+    # Test 3: Ray copy
+    print("\nTest 3: Ray copy")
+    ray3 = ray1.copy()
+    print(f"  Original: {ray1}")
+    print(f"  Copy: {ray3}")
+    print(f"  Are they the same object? {ray1 is ray3}")
+    print(f"  Do they have the same values? p1={ray1.p1 == ray3.p1}, brightness={ray1.total_brightness == ray3.total_brightness}")
+
+    # Modify copy and verify original is unchanged
+    ray3.brightness_s = 0.1
+    ray3.p1['x'] = 50
+    print(f"  After modifying copy:")
+    print(f"    Original brightness: {ray1.total_brightness}")
+    print(f"    Copy brightness: {ray3.total_brightness}")
+    print(f"    Original p1.x: {ray1.p1['x']}")
+    print(f"    Copy p1.x: {ray3.p1['x']}")
+
+    # Test 4: Ray with gap flag
+    print("\nTest 4: Gap ray (not drawn)")
+    ray4 = Ray(
+        p1={'x': 100, 'y': 100},
+        p2={'x': 200, 'y': 100}
+    )
+    ray4.gap = True
+    print(f"  {ray4}")
+    print(f"  Gap flag: {ray4.gap}")
+
+    # Test 5: Calculate ray length
+    print("\nTest 5: Ray length calculation")
+    dx = ray1.p2['x'] - ray1.p1['x']
+    dy = ray1.p2['y'] - ray1.p1['y']
+    length = math.sqrt(dx*dx + dy*dy)
+    print(f"  Ray: ({ray1.p1['x']}, {ray1.p1['y']}) -> ({ray1.p2['x']}, {ray1.p2['y']})")
+    print(f"  Length: {length:.2f}")
+
+    # Test 6: Different polarization states
+    print("\nTest 6: Polarization states")
+    rays = [
+        Ray(p1={'x': 0, 'y': 0}, p2={'x': 1, 'y': 0}, brightness_s=1.0, brightness_p=0.0),  # S-polarized
+        Ray(p1={'x': 0, 'y': 0}, p2={'x': 1, 'y': 0}, brightness_s=0.0, brightness_p=1.0),  # P-polarized
+        Ray(p1={'x': 0, 'y': 0}, p2={'x': 1, 'y': 0}, brightness_s=0.5, brightness_p=0.5),  # Unpolarized
+        Ray(p1={'x': 0, 'y': 0}, p2={'x': 1, 'y': 0}, brightness_s=0.0, brightness_p=0.0),  # Absorbed
+    ]
+
+    for i, ray in enumerate(rays):
+        print(f"  Ray {i+1}: s={ray.brightness_s:.1f}, p={ray.brightness_p:.1f}, total={ray.total_brightness:.1f}")
+
+    print("\nRay test completed successfully!")

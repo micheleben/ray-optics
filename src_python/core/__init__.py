@@ -17,9 +17,17 @@ limitations under the License.
 from .geometry import geometry, Point, Line, Circle, Geometry
 from . import constants
 from .equation import evaluate_latex, evaluate_latex_single_var
+from .ray import Ray
+from .scene import Scene
+from .simulator import Simulator
+from .svg_renderer import SVGRenderer
 
 __all__ = [
     'geometry', 'Point', 'Line', 'Circle', 'Geometry',
     'constants',
-    'evaluate_latex', 'evaluate_latex_single_var'
+    'evaluate_latex', 'evaluate_latex_single_var',
+    'Ray',
+    'Scene',
+    'Simulator',
+    'SVGRenderer'
 ]
