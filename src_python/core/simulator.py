@@ -348,18 +348,10 @@ if __name__ == "__main__":
     print("Testing Simulator class...\n")
 
     # Import required modules for testing
-    try:
-        from .scene import Scene
-        from .ray import Ray
-        from . import geometry
-    except ImportError:
-        # Handle running as script
-        import sys
-        import os
-        sys.path.insert(0, os.path.dirname(__file__))
-        from scene import Scene
-        from ray import Ray
-        import geometry
+    from scene import Scene
+    from ray import Ray
+    from geometry import Geometry as geometry
+
 
     # Mock optical objects for testing
     class MockLightSource:
@@ -393,16 +385,16 @@ if __name__ == "__main__":
         def check_ray_intersects(self, ray):
             """Find intersection with mirror line segment."""
             # Simple line-segment intersection
-            mirror_line = geometry.Geometry.line(
-                geometry.Geometry.point(self.p1['x'], self.p1['y']),
-                geometry.Geometry.point(self.p2['x'], self.p2['y'])
+            mirror_line = geometry.line(
+                geometry.point(self.p1['x'], self.p1['y']),
+                geometry.point(self.p2['x'], self.p2['y'])
             )
-            ray_line = geometry.Geometry.line(
-                geometry.Geometry.point(ray.p1['x'], ray.p1['y']),
-                geometry.Geometry.point(ray.p2['x'], ray.p2['y'])
+            ray_line = geometry.line(
+                geometry.point(ray.p1['x'], ray.p1['y']),
+                geometry.point(ray.p2['x'], ray.p2['y'])
             )
 
-            intersection = geometry.Geometry.lines_intersection(mirror_line, ray_line)
+            intersection = geometry.lines_intersection(mirror_line, ray_line)
 
             # Check if intersection is within the segment bounds
             if math.isinf(intersection.x) or math.isinf(intersection.y):
@@ -464,16 +456,16 @@ if __name__ == "__main__":
 
         def check_ray_intersects(self, ray):
             """Find intersection with absorber line segment."""
-            absorber_line = geometry.Geometry.line(
-                geometry.Geometry.point(self.p1['x'], self.p1['y']),
-                geometry.Geometry.point(self.p2['x'], self.p2['y'])
+            absorber_line = geometry.line(
+                geometry.point(self.p1['x'], self.p1['y']),
+                geometry.point(self.p2['x'], self.p2['y'])
             )
-            ray_line = geometry.Geometry.line(
-                geometry.Geometry.point(ray.p1['x'], ray.p1['y']),
-                geometry.Geometry.point(ray.p2['x'], ray.p2['y'])
+            ray_line = geometry.line(
+                geometry.point(ray.p1['x'], ray.p1['y']),
+                geometry.point(ray.p2['x'], ray.p2['y'])
             )
 
-            intersection = geometry.Geometry.lines_intersection(absorber_line, ray_line)
+            intersection = geometry.lines_intersection(absorber_line, ray_line)
 
             if math.isinf(intersection.x) or math.isinf(intersection.y):
                 return None
@@ -636,8 +628,8 @@ if __name__ == "__main__":
     # Test geometry object conversion
     class GeomRay:
         def __init__(self):
-            self.p1 = geometry.Geometry.point(1, 2)
-            self.p2 = geometry.Geometry.point(3, 4)
+            self.p1 = geometry.point(1, 2)
+            self.p2 = geometry.point(3, 4)
             self.brightness_s = 0.5
             self.brightness_p = 0.5
             self.wavelength = None
