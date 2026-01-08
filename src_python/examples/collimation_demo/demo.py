@@ -35,8 +35,8 @@ Expected behavior:
 import sys
 import os
 
-# Add parent directory to path to import core modules
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+# Add parent directories to path to import core modules
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from core.scene import Scene
 from core.scene_objs.light_source.point_source import PointSource
@@ -121,20 +121,24 @@ def main():
         opacity = min(ray.total_brightness, 1.0)
         renderer.draw_ray_segment(ray, color='red', opacity=opacity, stroke_width=1)
 
-    # Save SVG
-    output_file = os.path.join(os.path.dirname(__file__), 'collimation_demo.svg')
-    renderer.save(output_file)
-
-    print(f"\nSVG saved to: {output_file}")
-
-    # Export ray data to CSV for debugging
+    # Save outputs to the same directory as this script
     import csv
-    csv_file = os.path.join(os.path.dirname(__file__), 'collimation_demo_rays.csv')
+    import json
+    import math
+
+    output_dir = os.path.dirname(__file__)
+
+    # Save SVG
+    svg_file = os.path.join(output_dir, 'output.svg')
+    renderer.save(svg_file)
+    print(f"\nSVG saved to: {svg_file}")
+
+    # Export ray data to CSV
+    csv_file = os.path.join(output_dir, 'rays.csv')
     with open(csv_file, 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(['ray_index', 'p1_x', 'p1_y', 'p2_x', 'p2_y', 'brightness_s', 'brightness_p', 'brightness_total', 'wavelength', 'gap', 'length'])
         for i, ray in enumerate(ray_segments):
-            import math
             dx = ray.p2['x'] - ray.p1['x']
             dy = ray.p2['y'] - ray.p1['y']
             length = math.sqrt(dx*dx + dy*dy)
@@ -151,8 +155,55 @@ def main():
                 ray.gap,
                 f"{length:.4f}"
             ])
+    print(f"CSV data exported to: {csv_file}")
 
-    print(f"Ray data exported to: {csv_file}")
+    # Export ray data to JSON
+    json_file = os.path.join(output_dir, 'rays.json')
+    rays_data = {
+        'scene': {
+            'source': {'x': source.x, 'y': source.y, 'brightness': source.brightness},
+            'lens': {
+                'p1': lens.p1,
+                'p2': lens.p2,
+                'focal_length': lens.focal_length
+            },
+            'screen': {
+                'p1': screen.p1,
+                'p2': screen.p2
+            },
+            'ray_density': scene.ray_density
+        },
+        'simulation': {
+            'total_rays_processed': simulator.processed_ray_count,
+            'total_segments': len(ray_segments),
+            'warning': scene.warning,
+            'error': scene.error
+        },
+        'rays': []
+    }
+
+    for i, ray in enumerate(ray_segments):
+        dx = ray.p2['x'] - ray.p1['x']
+        dy = ray.p2['y'] - ray.p1['y']
+        length = math.sqrt(dx*dx + dy*dy)
+
+        rays_data['rays'].append({
+            'index': i,
+            'p1': {'x': ray.p1['x'], 'y': ray.p1['y']},
+            'p2': {'x': ray.p2['x'], 'y': ray.p2['y']},
+            'brightness': {
+                's': ray.brightness_s,
+                'p': ray.brightness_p,
+                'total': ray.total_brightness
+            },
+            'wavelength': ray.wavelength,
+            'gap': ray.gap,
+            'length': length
+        })
+
+    with open(json_file, 'w') as f:
+        json.dump(rays_data, f, indent=2)
+    print(f"JSON data exported to: {json_file}")
     print("\nExpected result:")
     print("  - Rays diverge from the source in a semicircle")
     print("  - After passing through the lens, rays become parallel")
