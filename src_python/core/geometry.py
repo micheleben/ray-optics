@@ -202,6 +202,13 @@ class Geometry:
         yb = l2.p2.y - l2.p1.y
 
         denominator = xa * yb - xb * ya
+
+        # Handle parallel lines (denominator = 0)
+        if abs(denominator) < 1e-12:
+            # Lines are parallel or coincident - return a point at infinity
+            # This signals "no intersection" to the caller
+            return Geometry.point(float('inf'), float('inf'))
+
         x = (A * xb - B * xa) / denominator
         y = (A * yb - B * ya) / denominator
 

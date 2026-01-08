@@ -1,0 +1,45 @@
+Collimation Demo - Point Source at Focal Point
+============================================================
+
+Scene setup:
+  Point source: position=(0, 300)
+  Lens: x=100, y=[200, 400], f=100
+  Screen: x=300, y=[100, 500]
+  Ray density: 0.3 radians
+
+Running simulation...
+DEBUG: Ray 30 p1={'x': 0, 'y': 300}, p2=(9510.57, 3390.17) angle=18.0°
+DEBUG: HIT! IdealLens intersection: Point(x=100.0, y=332.4919696232887)
+DEBUG: Calling on_ray_incident, output_ray p1={'x': 100.0, 'y': 332.4919696232887}, p2={'x': 100.0, 'y': 332.4919696232887}
+DEBUG: After on_ray_incident, output_ray p1={'x': nan, 'y': nan}, p2={'x': nan, 'y': nan}
+DEBUG: Ray 31 p1={'x': 0, 'y': 300}, p2=(9631.63, 2989.20) angle=15.6°
+DEBUG: HIT! IdealLens intersection: Point(x=100.00000000000001, y=327.9205016770316)
+DEBUG: Calling on_ray_incident, output_ray p1={'x': 100.00000000000001, 'y': 327.9205016770316}, p2={'x': 100.00000000000001, 'y': 327.9205016770316}
+DEBUG: After on_ray_incident, output_ray p1={'x': nan, 'y': nan}, p2={'x': nan, 'y': nan}
+DEBUG: Ray 32 p1={'x': 0, 'y': 300}, p2=(9735.79, 2583.51) angle=13.2°
+DEBUG: HIT! IdealLens intersection: Point(x=100.0, y=323.4547882494953)
+DEBUG: Calling on_ray_incident, output_ray p1={'x': 100.0, 'y': 323.4547882494953}, p2={'x': 100.0, 'y': 323.4547882494953}
+DEBUG: After on_ray_incident, output_ray p1={'x': nan, 'y': nan}, p2={'x': nan, 'y': nan}
+DEBUG: Ray 33 p1={'x': 0, 'y': 300}, p2=(9822.87, 2173.81) angle=10.8°
+DEBUG: HIT! IdealLens intersection: Point(x=99.99999999999999, y=319.0760202218549)
+DEBUG: Calling on_ray_incident, output_ray p1={'x': 99.99999999999999, 'y': 319.0760202218549}, p2={'x': 99.99999999999999, 'y': 319.0760202218549}
+DEBUG: After on_ray_incident, output_ray p1={'x': nan, 'y': nan}, p2={'x': nan, 'y': nan}
+DEBUG: Ray 34 p1={'x': 0, 'y': 300}, p2=(9892.72, 1760.83) angle=8.4°
+DEBUG: HIT! IdealLens intersection: Point(x=100.0, y=314.7667152607911)
+DEBUG: Calling on_ray_incident, output_ray p1={'x': 100.0, 'y': 314.7667152607911}, p2={'x': 100.0, 'y': 314.7667152607911}
+DEBUG: After on_ray_incident, output_ray p1={'x': nan, 'y': nan}, p2={'x': nan, 'y': nan}
+  Processed 188 ray segments
+  Total segments stored: 188
+
+Creating SVG visualization...
+
+SVG saved to: c:\Users\admin\working_dir\github\ray-optics\src_python\examples\collimation_demo.svg
+Ray data exported to: c:\Users\admin\working_dir\github\ray-optics\src_python\examples\collimation_demo_rays.csv
+
+Expected result:
+  - Rays diverge from the source in a semicircle
+  - After passing through the lens, rays become parallel
+  - All rays hit the screen at approximately y=300 (source height)
+
+This demonstrates collimation: a point source at the focal
+point of a lens produces a parallel beam of light.

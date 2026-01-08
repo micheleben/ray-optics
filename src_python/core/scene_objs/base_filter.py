@@ -130,15 +130,21 @@ class BaseFilter(BaseSceneObj):
                   wavelength, False otherwise.
         """
         dichroic_enabled = self.scene.simulate_colors and self.filter and self.wavelength
-        ray_hue_matches_mirror = abs(self.wavelength - ray.wavelength) <= self.bandwidth
 
         # If dichroic is not enabled, always allow interaction
+        if not dichroic_enabled:
+            return True
+
+        # Check if ray wavelength matches filter (handle None wavelength)
+        if ray.wavelength is None:
+            # White light - doesn't match any specific wavelength filter
+            ray_hue_matches_mirror = False
+        else:
+            ray_hue_matches_mirror = abs(self.wavelength - ray.wavelength) <= self.bandwidth
+
         # If enabled, allow interaction when:
         # - (ray matches AND not inverted) OR (ray doesn't match AND inverted)
-        # This is equivalent to: ray_matches XOR inverted == False
-        # Or: not (ray_matches XOR inverted)
-        # Or: not dichroic_enabled OR (ray_matches == not inverted)
-        return not dichroic_enabled or (ray_hue_matches_mirror != self.invert)
+        return ray_hue_matches_mirror != self.invert
 
 
 # Example usage
