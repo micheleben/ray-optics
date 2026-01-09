@@ -151,9 +151,17 @@ class SVGRenderer:
             # Extend the ray to the edge of the viewbox
             p2 = self._extend_to_edge(p1, p2)
 
+        # Clip the ray to the viewbox boundaries
+        # This prevents drawing geometry way outside the visible area
+        p1_clipped, p2_clipped = self._clip_to_viewbox(p1, p2)
+
+        if p1_clipped is None or p2_clipped is None:
+            # Ray is completely outside the viewbox
+            return
+
         # Normalize coordinates to handle edge cases like -0.0
-        p1 = self._normalize_point(p1)
-        p2 = self._normalize_point(p2)
+        p1 = self._normalize_point(p1_clipped)
+        p2 = self._normalize_point(p2_clipped)
 
         # Create line element with id containing metadata
         # (data-* attributes are not supported in svgwrite tiny profile)
@@ -327,13 +335,74 @@ class SVGRenderer:
         polygon = self.dwg.polygon(points=points, fill=color)
         self.layer_objects.add(polygon)
 
+    def _clip_to_viewbox(self, p1, p2):
+        """
+        Clip a line segment to the viewbox boundaries.
+
+        Uses Liang-Barsky algorithm to clip the line segment p1-p2 to the viewbox.
+
+        Args:
+            p1 (dict): Start point in Y-up coordinates
+            p2 (dict): End point in Y-up coordinates
+
+        Returns:
+            tuple: (clipped_p1, clipped_p2) or (None, None) if completely outside
+        """
+        # Use user_viewbox which is in Y-up coordinates
+        min_x, min_y, width, height = self.user_viewbox
+        max_x = min_x + width
+        max_y = min_y + height
+
+        x1, y1 = p1['x'], p1['y']
+        x2, y2 = p2['x'], p2['y']
+        dx = x2 - x1
+        dy = y2 - y1
+
+        # Liang-Barsky algorithm
+        t0, t1 = 0.0, 1.0
+
+        # Check all four edges
+        for edge in range(4):
+            if edge == 0:   # Left edge
+                p, q = -dx, x1 - min_x
+            elif edge == 1: # Right edge
+                p, q = dx, max_x - x1
+            elif edge == 2: # Bottom edge
+                p, q = -dy, y1 - min_y
+            else:           # Top edge
+                p, q = dy, max_y - y1
+
+            if abs(p) < 1e-10:
+                # Line is parallel to this edge
+                if q < 0:
+                    # Line is completely outside
+                    return None, None
+            else:
+                t = q / p
+                if p < 0:
+                    # Entering the viewbox
+                    t0 = max(t0, t)
+                else:
+                    # Leaving the viewbox
+                    t1 = min(t1, t)
+
+        if t0 > t1:
+            # Line is completely outside
+            return None, None
+
+        # Calculate clipped points
+        clipped_p1 = {'x': x1 + t0 * dx, 'y': y1 + t0 * dy}
+        clipped_p2 = {'x': x1 + t1 * dx, 'y': y1 + t1 * dy}
+
+        return clipped_p1, clipped_p2
+
     def _extend_to_edge(self, p1, p2):
         """
         Extend a ray from p1 through p2 to the edge of the viewbox.
 
         Args:
-            p1 (dict): Start point
-            p2 (dict): Direction point
+            p1 (dict): Start point in Y-up coordinates
+            p2 (dict): Direction point in Y-up coordinates
 
         Returns:
             dict: Point at the edge of viewbox
@@ -344,8 +413,8 @@ class SVGRenderer:
         if abs(dx) < 1e-10 and abs(dy) < 1e-10:
             return p2
 
-        # Find intersection with viewbox edges
-        min_x, min_y, width, height = self.viewbox
+        # Find intersection with viewbox edges (use user_viewbox for Y-up coordinates)
+        min_x, min_y, width, height = self.user_viewbox
         max_x = min_x + width
         max_y = min_y + height
 
@@ -371,7 +440,7 @@ class SVGRenderer:
         if not t_values:
             return p2
 
-        t = max(t_values)
+        t = min(t_values)  # Use minimum t to get first edge intersection
         return {'x': p1['x'] + dx * t, 'y': p1['y'] + dy * t}
 
     def save(self, filename):
@@ -500,8 +569,8 @@ if __name__ == "__main__":
     
     # Test 8: Save to file
     print("\nTest 8: Save SVG to file")
-    temp_dir = os.path.join(os.getcwd(), 'src_python', 'examples', 'temp_svg_tests')
-    os.makedirs(temp_dir, exist_ok=True)
+    temp_dir = os.path.join(os.getcwd(), 'src_python','core', 'developer_tests', 'temp_svg_tests')
+    # os.makedirs(temp_dir, exist_ok=True)
     output_file = os.path.join(temp_dir, 'test_renderer_output.svg')
     renderer.save(output_file)
     file_exists = os.path.exists(output_file)
