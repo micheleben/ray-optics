@@ -17,5 +17,6 @@ limitations under the License.
 from .point_source import PointSource
 from .beam import Beam
 from .single_ray import SingleRay
+from .angle_source import AngleSource
 
-__all__ = ['PointSource', 'Beam', 'SingleRay']
+__all__ = ['PointSource', 'Beam', 'SingleRay', 'AngleSource']
