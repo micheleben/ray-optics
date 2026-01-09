@@ -232,7 +232,7 @@ class IdealLens(LineObjMixin, BaseSceneObj):
         """
         return self.check_ray_intersects_shape(ray)
 
-    def on_ray_incident(self, ray, ray_index, incident_point):
+    def on_ray_incident(self, ray, ray_index, incident_point, surface_merging_objs=None):
         """
         Handle ray incidence on the ideal lens.
 
@@ -247,6 +247,7 @@ class IdealLens(LineObjMixin, BaseSceneObj):
             ray: The incident ray.
             ray_index: Index of the ray in the ray array.
             incident_point: The point where the ray hits the lens.
+            surface_merging_objs: List of glass objects to merge with (unused for ideal lens).
 
         Returns:
             None (modifies the ray in place).

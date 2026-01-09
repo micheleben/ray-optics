@@ -145,7 +145,7 @@ class Blocker(LineObjMixin, BaseFilter):
         else:
             return None
 
-    def on_ray_incident(self, ray, ray_index, incident_point):
+    def on_ray_incident(self, ray, ray_index, incident_point, surface_merging_objs=None):
         """
         Handle ray incidence on the blocker.
 
@@ -155,6 +155,7 @@ class Blocker(LineObjMixin, BaseFilter):
             ray: The incident ray.
             ray_index: Index of the ray in the ray array.
             incident_point: The point where the ray hits the blocker.
+            surface_merging_objs: List of glass objects to merge with (unused for blocker).
 
         Returns:
             Dict with 'isAbsorbed': True to indicate the ray is absorbed.
