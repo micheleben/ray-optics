@@ -119,7 +119,7 @@ def main():
     for ray in ray_segments:
         # Color rays by brightness for visibility
         opacity = min(ray.total_brightness, 1.0)
-        renderer.draw_ray_segment(ray, color='red', opacity=opacity, stroke_width=1)
+        renderer.draw_ray_segment(ray, color='red', opacity=opacity, stroke_width=1,extend_to_edge=False)
 
     # Save outputs to the same directory as this script
     import csv

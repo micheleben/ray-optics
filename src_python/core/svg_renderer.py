@@ -32,6 +32,11 @@ class SVGRenderer:
     The SVG includes data attributes on elements for post-processing
     and analysis.
 
+    Coordinate System:
+        The renderer uses a Y-up coordinate system (positive Y points upward),
+        which matches mathematical convention. This is achieved by applying
+        a vertical flip transformation to the SVG coordinate system.
+
     Attributes:
         width (int): Canvas width in pixels
         height (int): Canvas height in pixels
@@ -51,27 +56,73 @@ class SVGRenderer:
             height (int): Canvas height in pixels (default: 600)
             viewbox (tuple or None): SVG viewBox as (min_x, min_y, width, height)
                                     If None, uses (0, 0, width, height)
+
+        Note:
+            The viewbox coordinates use a Y-up system (positive Y goes up).
+            Internally, this is converted to SVG's Y-down system with a transform.
         """
         self.width = width
         self.height = height
-        self.viewbox = viewbox if viewbox is not None else (0, 0, width, height)
+        self.user_viewbox = viewbox if viewbox is not None else (0, 0, width, height)
+
+        # Convert user's Y-up viewbox to SVG's Y-down viewbox
+        # User specifies (min_x, min_y, width, height) in Y-up coordinates
+        # SVG needs the viewbox flipped: min_y becomes -(min_y + height)
+        min_x, min_y, vb_width, vb_height = self.user_viewbox
+        svg_viewbox = (min_x, -(min_y + vb_height), vb_width, vb_height)
+        self.viewbox = svg_viewbox
 
         # Create SVG drawing with profile='tiny' to disable strict validation
         # This allows custom data-* attributes
         self.dwg = svgwrite.Drawing(size=(f'{width}px', f'{height}px'), profile='tiny')
         self.dwg.viewbox(*self.viewbox)
 
-        # Add white background
+        # Add white background (covers the entire viewbox)
         self.dwg.add(self.dwg.rect(
             insert=(self.viewbox[0], self.viewbox[1]),
             size=(self.viewbox[2], self.viewbox[3]),
             fill='white'
         ))
 
-        # Create layers as groups (bottom to top)
-        self.layer_objects = self.dwg.add(self.dwg.g(id='objects'))
-        self.layer_rays = self.dwg.add(self.dwg.g(id='rays'))
-        self.layer_labels = self.dwg.add(self.dwg.g(id='labels'))
+        # Create layers as groups (bottom to top) with Y-flip transformation
+        # This makes positive Y point upward (mathematical convention)
+        self.layer_objects = self.dwg.add(self.dwg.g(id='objects', transform='scale(1, -1)'))
+        self.layer_rays = self.dwg.add(self.dwg.g(id='rays', transform='scale(1, -1)'))
+        self.layer_labels = self.dwg.add(self.dwg.g(id='labels', transform='scale(1, -1)'))
+
+    def _normalize_coord(self, value):
+        """
+        Normalize a coordinate value to handle edge cases.
+
+        Handles:
+        - Negative zero (-0.0) -> positive zero (0.0)
+        - Very small values near zero -> zero
+
+        Args:
+            value (float): Coordinate value to normalize
+
+        Returns:
+            float: Normalized coordinate value
+        """
+        # Handle negative zero and very small values
+        if value == 0.0 or abs(value) < 1e-10:
+            return 0.0
+        return value
+
+    def _normalize_point(self, point):
+        """
+        Normalize a point dictionary to handle edge cases.
+
+        Args:
+            point (dict): Point with 'x' and 'y' keys
+
+        Returns:
+            dict: Normalized point
+        """
+        return {
+            'x': self._normalize_coord(point['x']),
+            'y': self._normalize_coord(point['y'])
+        }
 
     def draw_ray_segment(self, ray, color='red', opacity=1.0, stroke_width=1.5, extend_to_edge=False):
         """
@@ -99,6 +150,10 @@ class SVGRenderer:
         if extend_to_edge:
             # Extend the ray to the edge of the viewbox
             p2 = self._extend_to_edge(p1, p2)
+
+        # Normalize coordinates to handle edge cases like -0.0
+        p1 = self._normalize_point(p1)
+        p2 = self._normalize_point(p2)
 
         # Create line element with id containing metadata
         # (data-* attributes are not supported in svgwrite tiny profile)
@@ -129,6 +184,8 @@ class SVGRenderer:
             radius (float): Circle radius in pixels (default: 3)
             label (str or None): Optional text label to show near point
         """
+        point = self._normalize_point(point)
+
         circle = self.dwg.circle(
             center=(point['x'], point['y']),
             r=radius,
@@ -139,10 +196,11 @@ class SVGRenderer:
         if label:
             text = self.dwg.text(
                 label,
-                insert=(point['x'] + radius + 2, point['y'] - radius - 2),
+                insert=(point['x'] + radius + 2, point['y'] + radius + 2),
                 fill=color,
                 font_size='12px',
-                font_family='sans-serif'
+                font_family='sans-serif',
+                transform='scale(1, -1)'  # Flip text back to be readable
             )
             self.layer_labels.add(text)
 
@@ -157,6 +215,9 @@ class SVGRenderer:
             stroke_width (float): Line width in pixels (default: 2)
             label (str or None): Optional text label
         """
+        p1 = self._normalize_point(p1)
+        p2 = self._normalize_point(p2)
+
         line = self.dwg.line(
             start=(p1['x'], p1['y']),
             end=(p2['x'], p2['y']),
@@ -167,15 +228,16 @@ class SVGRenderer:
 
         if label:
             # Place label at midpoint
-            mid_x = (p1['x'] + p2['x']) / 2
-            mid_y = (p1['y'] + p2['y']) / 2
+            mid_x = self._normalize_coord((p1['x'] + p2['x']) / 2)
+            mid_y = self._normalize_coord((p1['y'] + p2['y']) / 2)
             text = self.dwg.text(
                 label,
-                insert=(mid_x, mid_y - 5),
+                insert=(mid_x, mid_y + 5),
                 fill=color,
                 font_size='12px',
                 font_family='sans-serif',
-                text_anchor='middle'
+                text_anchor='middle',
+                transform='scale(1, -1)'  # Flip text back to be readable
             )
             self.layer_labels.add(text)
 
@@ -190,6 +252,9 @@ class SVGRenderer:
             color (str): Color for lens (default: 'blue')
             label (str or None): Optional label
         """
+        p1 = self._normalize_point(p1)
+        p2 = self._normalize_point(p2)
+
         # Draw the main line
         self.draw_line_segment(p1, p2, color=color, stroke_width=3)
 
@@ -219,8 +284,8 @@ class SVGRenderer:
             self._draw_arrow_outward(p2, -par_x, -par_y, per_x, per_y, arrow_size, color)
 
         # Draw center mark
-        mid_x = (p1['x'] + p2['x']) / 2
-        mid_y = (p1['y'] + p2['y']) / 2
+        mid_x = self._normalize_coord((p1['x'] + p2['x']) / 2)
+        mid_y = self._normalize_coord((p1['y'] + p2['y']) / 2)
         center_size = 8
         center_line = self.dwg.line(
             start=(mid_x - per_x * center_size, mid_y - per_y * center_size),
@@ -233,11 +298,12 @@ class SVGRenderer:
         if label:
             text = self.dwg.text(
                 label,
-                insert=(mid_x, mid_y - 15),
+                insert=(mid_x, mid_y + 15),
                 fill=color,
                 font_size='12px',
                 font_family='sans-serif',
-                text_anchor='middle'
+                text_anchor='middle',
+                transform='scale(1, -1)'  # Flip text back to be readable
             )
             self.layer_labels.add(text)
 
@@ -330,7 +396,6 @@ class SVGRenderer:
 # Example usage and testing
 if __name__ == "__main__":
     import os
-    import tempfile
 
     print("Testing SVGRenderer class...\n")
 
@@ -420,6 +485,9 @@ if __name__ == "__main__":
     ray4 = MockRay({'x': 10, 'y': 160}, {'x': 90, 'y': 160}, gap=True)
     renderer.draw_ray_segment(ray4, color='red', opacity=1.0, stroke_width=2)
 
+    ray5 = MockRay({'x': 0, 'y': 100}, {'x': 90, 'y': 110})
+    renderer.draw_ray_segment(ray5, color='blue', opacity=1.0, stroke_width=2)
+
     print("  Drew 4 rays: normal, wavelength-specific, faint, gap (gap not drawn)")
 
     # Test 7: Invalid ray handling (NaN, Inf)
@@ -429,10 +497,11 @@ if __name__ == "__main__":
     renderer.draw_ray_segment(ray_nan, color='red')
     renderer.draw_ray_segment(ray_inf, color='red')
     print("  Attempted to draw NaN and Inf rays (skipped automatically)")
-
+    
     # Test 8: Save to file
     print("\nTest 8: Save SVG to file")
-    temp_dir = tempfile.gettempdir()
+    temp_dir = os.path.join(os.getcwd(), 'src_python', 'examples', 'temp_svg_tests')
+    os.makedirs(temp_dir, exist_ok=True)
     output_file = os.path.join(temp_dir, 'test_renderer_output.svg')
     renderer.save(output_file)
     file_exists = os.path.exists(output_file)
