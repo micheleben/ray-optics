@@ -15,5 +15,6 @@ limitations under the License.
 """
 
 from .point_source import PointSource
+from .beam import Beam
 
-__all__ = ['PointSource']
+__all__ = ['PointSource', 'Beam']
