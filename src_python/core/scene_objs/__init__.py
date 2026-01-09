@@ -23,7 +23,7 @@ from .base_glass import BaseGlass
 from .base_custom_surface import BaseCustomSurface
 from .base_grin_glass import BaseGrinGlass
 from .blocker import Blocker
-from .light_source import PointSource, Beam
+from .light_source import PointSource, Beam, SingleRay
 from .glass import IdealLens
 
-__all__ = ['BaseSceneObj', 'ConstructReturn', 'SimulationReturn', 'LineObjMixin', 'CircleObjMixin', 'ParamCurveObjMixin', 'BaseFilter', 'BaseGlass', 'BaseCustomSurface', 'BaseGrinGlass', 'Blocker', 'PointSource', 'Beam', 'IdealLens']
+__all__ = ['BaseSceneObj', 'ConstructReturn', 'SimulationReturn', 'LineObjMixin', 'CircleObjMixin', 'ParamCurveObjMixin', 'BaseFilter', 'BaseGlass', 'BaseCustomSurface', 'BaseGrinGlass', 'Blocker', 'PointSource', 'Beam', 'SingleRay', 'IdealLens']
