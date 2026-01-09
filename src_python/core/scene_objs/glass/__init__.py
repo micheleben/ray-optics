@@ -15,5 +15,6 @@ limitations under the License.
 """
 
 from .ideal_lens import IdealLens
+from .glass import Glass
 
-__all__ = ['IdealLens']
+__all__ = ['IdealLens', 'Glass']
